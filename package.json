@@ -1,0 +1,17 @@
+{
+  "name": "tacitview",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/dev-server.cjs",
+    "start": "node server/dev-server.cjs",
+    "test": "node --test test/offline.cjs test/live.mjs",
+    "test:offline": "node --test test/offline.cjs",
+    "logos": "npm install --no-save sharp@0.34.5 && node scripts/logos.mjs",
+    "test:mutants": "node test/mutants.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,9 @@
+# Not part of the deployed site. server/ stays: the API function needs it.
+.claude
+.DS_Store
+node_modules
+test
+scripts
+docs
+AGENTS.md
+CLAUDE.md
