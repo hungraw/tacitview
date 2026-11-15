@@ -71,7 +71,9 @@ export function renderSection(section, data) {
     // Stale: this browser fell back to its copy, the body says an upstream answer was a fallback, or the server's own
     // copy is over five minutes old (past every view's cache and the CDN's revalidate window). The time shown is when the data was built, not when this page asked for it.
     const ageOf = (name) => meta.get(data[name]?.data || {})?.dataAt || data[name]?.savedAt;
-    const stale = section.sources.some((name) => data[name]?.stale || data[name]?.data?.stale === true || meta.get(data[name]?.data || {})?.serverStale || Date.now() - (ageOf(name) || Date.now()) > 300_000);
+    // Only the sources the card needs count: an optional one (extra context such as the bridge's burn chips) never
+    // marks the whole card stale.
+    const stale = section.sources.filter((name) => !optional.has(name)).some((name) => data[name]?.stale || data[name]?.data?.stale === true || meta.get(data[name]?.data || {})?.serverStale || Date.now() - (ageOf(name) || Date.now()) > 300_000);
     // A source the server could not read is named in the footer (views send it as `gaps`), not left as blank cells.
     const gaps = [...new Set(section.sources.flatMap((name) => data[name]?.data?.gaps || []))];
     const fetchedAt = Object.fromEntries(section.sources.map((name) => [name, ageOf(name)]));
