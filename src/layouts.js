@@ -1,15 +1,15 @@
 // Which sections each live page shows, row by row. The home page stays small on purpose: the system at a glance,
 // then one click to depth.
-// A card: [section id, title, link for "View all" (optional), 'dark' (optional), { foot: true } to put "View all" in
-// the card's foot (optional)]. A list of cards in place of one
+// A card: [section id, title, page the title links to (optional), 'dark' (optional)]. The card's title is the link to
+// its full list, so the head keeps its right side for the card's figures. A list of cards in place of one
 // stacks them in that grid cell.
 
 export const LAYOUTS = {
   home: {
     rows: [
       // Wide screens: the bridge sits inside the ConfidentialPool card (it is on Ethereum), and a line runs from the
-      // Bitcoin tip into it (src/connector.js); "View all" moves to the card's foot to leave the line room.
-      { cls: 'hero', cards: [['btc-blocks', 'Bitcoin blocks', '#/blocks', null, { foot: true }], ['bridge', 'Bridge', null, 'dark'], ['confidential', 'ConfidentialPool', '#/pool-events', null, { foot: true }]] },
+      // Bitcoin tip into it (src/connector.js).
+      { cls: 'hero', cards: [['btc-blocks', 'Bitcoin blocks', '#/blocks'], ['bridge', 'Bridge', null, 'dark'], ['confidential', 'ConfidentialPool', '#/pool-events']] },
       { cls: 'grid-2', cards: [['envelopes', 'Envelopes', '#/blocks'], ['tacit-chain', 'Tacit chain', '#/tacit-chain']] },
       { cls: 'grid-1', cards: [['checks-mini', 'Verifier', '#/bridge']] },
     ],
@@ -45,7 +45,7 @@ export const LAYOUTS = {
   },
 };
 
-const card = ([id, title, more, tone, opts = {}]) => `<article class="card${tone === 'dark' ? ' card-dark' : ''}" id="${id}"><header class="card-head"><h2>${title}</h2><span class="card-head-end"><span class="status" id="${id}-status"></span>${more && !opts.foot ? `<a class="more" href="${more}">View all</a>` : ''}</span></header><div class="card-body" id="${id}-body"><div class="skeleton" aria-hidden="true"></div><span class="sr-only">Loading</span></div><footer class="card-foot"><span id="${id}-asof"></span><span id="${id}-source"></span>${more && opts.foot ? `<a class="more more-foot" href="${more}">View all</a>` : ''}</footer></article>`;
+const card = ([id, title, more, tone]) => `<article class="card${tone === 'dark' ? ' card-dark' : ''}" id="${id}"><header class="card-head"><h2>${more ? `<a class="title-link" href="${more}" title="Open the full list">${title}<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : title}</h2><span class="card-head-end"><span class="status" id="${id}-status"></span></span></header><div class="card-body" id="${id}-body"><div class="skeleton" aria-hidden="true"></div><span class="sr-only">Loading</span></div><footer class="card-foot"><span id="${id}-asof"></span><span id="${id}-source"></span></footer></article>`;
 
 export function buildLayout(name) {
   const layout = LAYOUTS[name];

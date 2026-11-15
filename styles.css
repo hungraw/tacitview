@@ -1131,3 +1131,12 @@ button.name-pill:hover, button.name-pill[aria-expanded="true"] { background: var
 
 .hero-2 .rail-mid { display: none; } /* the Bridge page lists burns in their own card */
 .hero-2 .rail-top, .hero-2 .rail-bottom { display: contents; }
+
+/* A card's title opens its full list (in place of a "View all" link): the title keeps its look, a small chevron
+   shows it goes somewhere, and it underlines on hover. */
+.title-link { color: inherit; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.title-link svg { width: 14px; height: 14px; color: var(--mute); transition: transform .15s, color .15s; }
+.title-link:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.title-link:hover svg { color: var(--ink); transform: translateX(2px); }
+.card-dark .title-link svg { color: var(--dark-mute); }
+.title-link:focus-visible { outline: 2px solid var(--eth); outline-offset: 3px; border-radius: 4px; }
