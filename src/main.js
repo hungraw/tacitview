@@ -59,6 +59,15 @@ async function loadAll({ force = false } = {}) {
       loadSource(name, { signal: controller.signal, force }).then((r) => [name, r], (error) => [name, { error }])]));
     let partial = false;
     await Promise.all(present.map(async (section) => {
+      // A card with optional extras (the bridge's burn chips and Verifier rows) is drawn as soon as its own data is
+      // in, then drawn again with the extras, so a slow extra never leaves the card empty.
+      const optional = new Set(section.optional || []);
+      if (optional.size) {
+        const first = Object.fromEntries(await Promise.all(section.sources.filter((n) => !optional.has(n)).map((name) => loads.get(name))));
+        const body = document.getElementById(`${section.id}-body`);
+        const extrasIn = section.sources.filter((n) => optional.has(n)).map((n) => [n, peekSource(n, 15 * 60_000)]);
+        if (body && !body.dataset.rendered) renderSection(section, { ...Object.fromEntries(extrasIn.map(([n, e]) => [n, e ? { data: e.data, savedAt: e.savedAt } : {}])), ...first });
+      }
       const data = Object.fromEntries(await Promise.all(section.sources.map((name) => loads.get(name))));
       if (section.sources.some((name) => data[name]?.data?.partial)) partial = true;
       // The page may have changed while loading: render only sections still on screen.

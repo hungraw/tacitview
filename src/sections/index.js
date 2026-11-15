@@ -5,7 +5,7 @@
 //   render(values, fetchedAt) -> { html, status, asOf, source }   asOf: context only (no fetch time); source: hover hint   fetchedAt: { name: ms } when each source was fetched
 // renderSection() isolates failures: one broken source or render shows an error in that section only.
 
-import { escapeHtml, clock, info, pill } from '../format.js';
+import { escapeHtml, clock, info } from '../format.js';
 import { meta } from '../data/api.js';
 import checksMini from './checks-mini.js';
 import btcBlocks from './btc-blocks.js';
@@ -62,18 +62,16 @@ export function renderSection(section, data) {
     const reason = /429|cooling down/i.test(raw) ? 'A data source is rate-limiting us right now.' : /timeout|abort/i.test(raw) ? 'A data source took too long to answer.' : 'A data source is unavailable right now.';
     // Keep the last good render if there is one (and say it is older); otherwise show the reason in place of the body.
     if (!body?.dataset.rendered) body.innerHTML = `<p class="empty">${escapeHtml(reason)} It will retry automatically.</p>`;
+    if (body?.dataset.rendered) return { ok: false }; // keep the last good render as it is; the next refresh replaces it
     set(`${section.id}-status`, 'error');
-    set(`${section.id}-asof`, body?.dataset.rendered ? `Showing earlier data · ${escapeHtml(reason)}` : `Retrying · ${clock(Date.now())}`);
+    set(`${section.id}-asof`, `Retrying · ${clock(Date.now())}`);
     return { ok: false };
   }
   try {
     const values = Object.fromEntries(section.sources.map((name) => [name, data[name]?.data ?? null]));
-    // Stale: this browser fell back to its copy, the body says an upstream answer was a fallback, or the server's own
-    // copy is over five minutes old (past every view's cache and the CDN's revalidate window). The time shown is when the data was built, not when this page asked for it.
+    // When the data was built (the server's time, else this browser's saved copy), not when this page asked for it.
+    // Older data is shown without a warning and replaced on the next refresh.
     const ageOf = (name) => meta.get(data[name]?.data || {})?.dataAt || data[name]?.savedAt;
-    // Only the sources the card needs count: an optional one (extra context such as the bridge's burn chips) never
-    // marks the whole card stale.
-    const stale = section.sources.filter((name) => !optional.has(name)).some((name) => data[name]?.stale || data[name]?.data?.stale === true || meta.get(data[name]?.data || {})?.serverStale || Date.now() - (ageOf(name) || Date.now()) > 300_000);
     // A source the server could not read is named in the footer (views send it as `gaps`), not left as blank cells.
     const gaps = [...new Set(section.sources.flatMap((name) => data[name]?.data?.gaps || []))];
     const fetchedAt = Object.fromEntries(section.sources.map((name) => [name, ageOf(name)]));
@@ -101,7 +99,7 @@ export function renderSection(section, data) {
       else { body.classList.add('just-ready'); setTimeout(() => body.classList.remove('just-ready'), 600); } // first data only: fade in over the skeleton
     }
     body.dataset.rendered = '1';
-    setHtml(`${section.id}-status`, `${stale ? pill('Stale', 'warn', 'Showing an older copy: a source is not answering right now') : out.status || ''}${out.about ? info(out.about, { end: true }) : ''}`);
+    setHtml(`${section.id}-status`, `${out.status || ''}${out.about ? info(out.about, { end: true }) : ''}`);
     setHtml(`${section.id}-asof`, [out.asOf, gaps.length ? `unavailable right now: ${escapeHtml(gaps.join(', '))}` : ''].filter(Boolean).join(' · ')); // section-built HTML, values escaped at source
     // Right side of the footer: just the time the data was fetched. Where it came from is a hover hint, not text.
     const times = Object.values(fetchedAt).filter(Boolean);
