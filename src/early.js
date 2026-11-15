@@ -26,6 +26,8 @@
   let id = null;
   try { id = raw == null ? null : decodeURIComponent(raw).trim(); } catch { return { kind: 'invalid', id: raw }; } // e.g. #/tx/%
   if (LIVE.has(name) && id == null) return { kind: 'live', page: name };
+  // #/bridge/verifier: the Bridge page, scrolled to the Verifier card (a link to share).
+  if (name === 'bridge' && id === 'verifier') return { kind: 'live', page: 'bridge', anchor: 'checks' };
   // #/check/<address or tx>: the Ethereum page with the withdrawal check made (src/sections/withdrawal-check.js).
   if (name === 'check' && id) return { kind: 'live', page: 'ethereum' };
   if (LISTS[name]) return id == null || LISTS[name].valid(id) ? { kind: 'list', name, view: LISTS[name].view, id: id || '' } : { kind: 'invalid', id };

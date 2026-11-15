@@ -142,6 +142,25 @@ function refill(r, hash, redraw, tries = 4) {
   }, 4_500);
 }
 
+// A deep link to a card (#/bridge/verifier): keep the card under the menu while the cards above it fill in and
+// change height, then let go. Any wheel, touch or key from the visitor ends it at once.
+function scrollToCard(id, hash) {
+  const start = Date.now();
+  let readyAt = 0, done = false;
+  const stop = () => { done = true; };
+  for (const e of ['wheel', 'touchstart', 'keydown', 'mousedown']) window.addEventListener(e, stop, { once: true, passive: true });
+  const tick = () => {
+    if (done || location.hash !== hash || Date.now() - start > 10_000 || (readyAt && Date.now() - readyAt > 1_500)) return;
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ block: 'start', behavior: 'instant' });
+      if (!readyAt && el.querySelector('table, .empty, .error')) readyAt = Date.now();
+    }
+    setTimeout(tick, 200);
+  };
+  tick();
+}
+
 async function showRoute() {
   route = parseRoute();
   markNav();
@@ -153,6 +172,7 @@ async function showRoute() {
     enter(page);
     document.title = route.page === 'home' ? 'tacitview · Tacit explorer' : `${route.page[0].toUpperCase()}${route.page.slice(1)} · tacitview`;
     loadAll();
+    if (route.anchor) scrollToCard(route.anchor, location.hash);
     return;
   }
   delete page.dataset.layout;
@@ -333,13 +353,6 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('click', (event) => { if (event.target.closest('.keys-hint')) $('keys')?.showModal(); });
-// The Verifier quick link: scroll to the card (its scroll-margin keeps it clear of the sticky menu).
-document.addEventListener('click', (event) => {
-  const jump = event.target.closest('[data-jump]');
-  if (!jump) return;
-  const target = document.getElementById(jump.dataset.jump);
-  if (target) target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-});
 
 // Tooltips (terms and "i" tips) are nudged sideways so they never run off the screen edge. Placed once when the
 // pointer enters (or focus arrives), from the host's position and the tip's untransformed width, against the visible

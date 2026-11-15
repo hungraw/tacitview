@@ -18,7 +18,7 @@ export async function annotateAddresses(root = document) {
   }
   for (const n of nodes) {
     const info = known.get(n.dataset.addr.toLowerCase());
-    if (!info) continue;
+    if (!info || n.dataset.named) continue; // another scan already labelled it
     n.dataset.named = '1';
     const text = info.name || info.label;
     if (!text) continue;
@@ -69,6 +69,9 @@ document.addEventListener('mouseover', (event) => { if (chip(event) && matchMedi
 document.addEventListener('mouseout', (event) => { if (chip(event) && owner === chip(event)) closeTimer = setTimeout(closeNames, 150); });
 document.addEventListener('click', (event) => {
   const button = chip(event);
+  // A chip inside a link (an address that opens its page) follows the link; the full list is on that page.
+  const link = button?.closest('a[href]');
+  if (link) { closeNames(); location.hash = link.getAttribute('href'); return; }
   if (button) { if (owner === button && !matchMedia('(hover: hover)').matches) closeNames(); else openNames(button); return; }
   if (pop && !pop.contains(event.target)) closeNames();
 });

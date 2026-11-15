@@ -899,6 +899,7 @@ tr.is-new-row > * { animation: row-new 3.2s ease-out both; }
 .is-now .bj-dot { border-color: var(--warn); } .is-now .bj-dot::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
 .bj-line { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
 @media (max-width: 640px) { .bj-row { grid-template-columns: 76px minmax(0, 1fr) 54px; gap: 10px; } .bj-step-name { font-size: 11px; } .bj-age { font-size: 12px; } }
+a.mp-addr { color: inherit; text-decoration: none; border-radius: 4px; } a.mp-addr:hover code { color: var(--eth); text-decoration: underline; text-underline-offset: 3px; } a.mp-addr:hover .addr-name.is-name { background: var(--eth-line); }
 .mp-addr { display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; } .mp-recip .num { white-space: nowrap; }
 
 /* Page clock: one "Updated" time and a refresh button beside the page title (Bridge page). */
@@ -1151,7 +1152,3 @@ button.name-pill:hover, button.name-pill[aria-expanded="true"] { background: var
 .page-head.has-meta:not(.no-title) .page-meta { align-self: flex-start; margin-top: -6px; } /* the Updated line sits as high under the menu as on Home */
 
 /* The Verifier quick link beside the Updated time. */
-.jump { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; padding: 0; border: 0; background: none; color: var(--eth); font: inherit; font-size: 13px; cursor: pointer; }
-.jump svg { width: 13px; height: 13px; }
-.jump:hover { text-decoration: underline; text-underline-offset: 3px; }
-.jump:focus-visible { outline: 2px solid var(--eth); outline-offset: 2px; border-radius: 4px; }

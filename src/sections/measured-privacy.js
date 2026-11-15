@@ -53,7 +53,7 @@ function evmSide(chains) {
   else {
     const topSum = c.top.reduce((a, t) => a + t.n, 0), others = c.withdrawals - topSum;
     const segs = [...c.top.map((t, i) => [t.n, TONES[i]]), ...(others > 0 ? [[others, 'var(--line-2)']] : [])];
-    const legend = [...c.top.map((t, i) => `<div class="mp-recip"><i style="background:${TONES[i]}"></i><span class="mp-addr"><code data-addr="${escapeHtml(t.address)}">${escapeHtml(shortId(t.address, 4))}</code></span><span class="num">${number(t.n)} · ${share(t.n, c.withdrawals)}</span></div>`),
+    const legend = [...c.top.map((t, i) => `<div class="mp-recip"><i style="background:${TONES[i]}"></i><a class="mp-addr" href="#/address/${escapeHtml(t.address)}" title="Open this address"><code data-addr="${escapeHtml(t.address)}">${escapeHtml(shortId(t.address, 4))}</code></a><span class="num">${number(t.n)} · ${share(t.n, c.withdrawals)}</span></div>`),
       ...(others > 0 ? [`<div class="mp-recip"><i style="background:var(--line-2)"></i><span class="muted">${number(c.recipients - c.top.length)} other address${c.recipients - c.top.length === 1 ? '' : 'es'}</span><span class="num">${number(others)} · ${share(others, c.withdrawals)}</span></div>`] : [])].join('');
     body = `<div class="mp-stats">
         <div><b class="num">${number(c.deposits)}</b><span>Deposits · ${formatUnits(c.ethIn, 18, 2)} ETH</span></div>
