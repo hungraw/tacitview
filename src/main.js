@@ -333,6 +333,13 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('click', (event) => { if (event.target.closest('.keys-hint')) $('keys')?.showModal(); });
+// The Verifier quick link: scroll to the card (its scroll-margin keeps it clear of the sticky menu).
+document.addEventListener('click', (event) => {
+  const jump = event.target.closest('[data-jump]');
+  if (!jump) return;
+  const target = document.getElementById(jump.dataset.jump);
+  if (target) target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+});
 
 // Tooltips (terms and "i" tips) are nudged sideways so they never run off the screen edge. Placed once when the
 // pointer enters (or focus arrives), from the host's position and the tip's untransformed width, against the visible

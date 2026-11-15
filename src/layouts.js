@@ -51,7 +51,10 @@ export function buildLayout(name) {
   const layout = LAYOUTS[name];
   const refresh = '<button type="button" class="page-refresh" id="page-refresh" aria-label="Refresh the data on this page" title="Refresh"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.5v2.8h-2.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
   // Every live page: one "Updated" time and a refresh button by the title (the home page has the row without a title).
-  const meta = `<div class="page-meta"><span id="page-updated"></span>${refresh}</div>`;
+  // Pages with a Verifier get a quick link to it beside the Updated time.
+  const verifier = layout.rows.flatMap((r) => r.cards.flatMap((c) => (Array.isArray(c[0]) ? c : [c]))).find((c) => c[0] === 'checks' || c[0] === 'checks-mini');
+  const jump = verifier ? `<button type="button" class="jump" data-jump="${verifier[0]}">Verifier<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9.5M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
+  const meta = `<div class="page-meta">${jump}<span id="page-updated"></span>${refresh}</div>`;
   const head = `<header class="page-head has-meta${layout.title ? '' : ' no-title'}">${layout.title ? `<h1>${layout.title}</h1>` : ''}${meta}</header>`;
   const cell = (c) => (Array.isArray(c[0]) ? `<div class="stack">${c.map(card).join('')}</div>` : card(c));
   return head + layout.rows.map((row) => `<section class="grid ${row.cls}">${row.cards.map(cell).join('')}</section>`).join('');

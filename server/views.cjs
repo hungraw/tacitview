@@ -58,8 +58,8 @@ async function evmPools() {
       balanceWei: live[i], balanceFrom: live[i] != null ? 'chain' : null, depositsWei: t.depositWei, withdrawalsWei: t.withdrawalWei,
       depositCount: t.deposits, withdrawalCount: t.withdrawals, lastAt: t.lastTime, through: t.through, live: t.live,
     })),
-    // A chain still being read is a normal, short-lived answer; the card says so and it refills.
-    cacheTtl: totals.some((t) => !t.live) ? 5 : undefined,
+    // A chain still being read: never cached (CDN or here), so the card asks again in seconds and fills in.
+    partial: totals.some((t) => !t.live) || undefined,
   };
 }
 

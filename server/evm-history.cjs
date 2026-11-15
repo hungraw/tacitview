@@ -233,7 +233,9 @@ async function withdrawalCheck(q) {
 // sums of deposits and withdrawals, and the newest event. `live` is false for a chain whose newest blocks are not read
 // yet (its totals stop at the snapshot).
 async function poolTotals() {
-  const idx = await index();
+  let idx = await index();
+  // A cold instance first answers from the snapshot alone; wait a little for the live blocks so the card is complete.
+  if (idx.cold) { await Promise.race([refresh(undefined).catch(() => null), new Promise((r) => setTimeout(r, 6_000).unref?.())]); idx = built?.index || idx; }
   return Object.entries(idx.totals).map(([chain, t]) => {
     const c = idx.coverage.find((x) => String(x.chain) === chain);
     return { chain: Number(chain), name: CHAINS[chain], deposits: t.deposits, withdrawals: t.withdrawals, depositWei: t.depositWei.toString(), withdrawalWei: t.withdrawalWei.toString(), lastBlock: t.lastBlock || null, lastTime: t.lastTime ?? null, through: c?.through ?? null, live: Boolean(c?.live) };

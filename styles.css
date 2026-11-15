@@ -903,7 +903,7 @@ tr.is-new-row > * { animation: row-new 3.2s ease-out both; }
 
 /* Page clock: one "Updated" time and a refresh button beside the page title (Bridge page). */
 .page-head.has-meta { flex-direction: row; align-items: baseline; justify-content: space-between; }
-.page-head.has-meta:not(.no-title) { margin: -10px 0 -14px; } .page-head.has-meta > h1 { margin: 0; } /* section pages: the same tighter gap under the menu as home */
+.page-head.has-meta:not(.no-title) { margin: -10px 0 -14px; } .page-head.has-meta > h1 { margin: 0; line-height: 24px; } /* section pages: the same tighter gap under the menu as home */
 .page-head.no-title { justify-content: flex-end; margin: -16px 0 -12px; } /* home: a smaller gap under the menu, and the Updated line a little closer to the cards than to the menu */
 .card-head-end .status:has(.info) { overflow: visible; }
 .page-meta { display: flex; align-items: center; gap: 6px; font: 13px var(--sans); color: var(--mute); }
@@ -1149,3 +1149,9 @@ button.name-pill:hover, button.name-pill[aria-expanded="true"] { background: var
 .card-dark .pill.is-muted { background: rgb(255 255 255 / .12); color: #d1d5db; }
 
 .page-head.has-meta:not(.no-title) .page-meta { align-self: flex-start; margin-top: -6px; } /* the Updated line sits as high under the menu as on Home */
+
+/* The Verifier quick link beside the Updated time. */
+.jump { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; padding: 0; border: 0; background: none; color: var(--eth); font: inherit; font-size: 13px; cursor: pointer; }
+.jump svg { width: 13px; height: 13px; }
+.jump:hover { text-decoration: underline; text-underline-offset: 3px; }
+.jump:focus-visible { outline: 2px solid var(--eth); outline-offset: 2px; border-radius: 4px; }
