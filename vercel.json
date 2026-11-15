@@ -21,7 +21,7 @@
       "headers": [
         {
           "key": "content-security-policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-RzDSS+EOgb1vZSFIstI/rtJdBIBT7lq9J1wSE4FUVKs='; style-src 'self' 'sha256-fLppRT3nbm5m4lMcCdLgNsSOH18q3vpiLUDq6a7+Yxw='; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' http://localhost:* http://127.0.0.1:*; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-RzDSS+EOgb1vZSFIstI/rtJdBIBT7lq9J1wSE4FUVKs='; style-src 'self' 'sha256-8j1udzkO1iOZ4/r2Mwe8vEzWcuiXhCCmGOvNeOMWLTk='; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' http://localhost:* http://127.0.0.1:*; form-action 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
         },
         {
           "key": "x-content-type-options",
