@@ -1168,19 +1168,21 @@ button.name-pill:hover, button.name-pill[aria-expanded="true"] { background: var
 .card-foot .more-foot { margin-left: auto; }
 @media (min-width: 1181px) {
   .hero > #confidential { grid-column: 2 / 4; grid-row: 1; padding-left: calc(240px + 20px + 4px); }
-  .hero > #bridge { grid-column: 2; grid-row: 1; z-index: 1; margin: 12px 0 12px 12px; }
+  .hero > #bridge, .hero > #bridge:hover, .hero > #bridge:focus-within { grid-column: 2; grid-row: 1; position: relative; z-index: 8; margin: 12px 0 12px 12px; } /* stays above the pool card, which rises on hover */
   .hero > #btc-blocks .card-head-end { margin-right: 30px; } /* room for the line to start inside the card */
-  .hero > #bridge .card-body { justify-content: space-between; gap: 26px; padding-left: 22px; } /* the rail, burns minted and the digest spread over the card */
+  .hero > #bridge .card-body { justify-content: flex-start; gap: 12px; padding-left: 22px; }
+  .hero > #bridge .rail-mid { flex: 1; justify-content: flex-start; } /* the biggest gap: between the relay tip and SP1 attested */
+  .rail-gapwrap { flex: 1; display: flex; align-items: center; } /* the label sits mid-way, the dashed stretch centred on it */
+  .rail-bottom { display: flex; flex-direction: column; gap: 20px; }
   .hero > #bridge .card-head { padding-left: 22px; } /* the line turns down left of the title */
-  .rail-run { display: flex; flex-direction: column; gap: 12px; }
-  .rail-run .bstat { position: relative; }
+  .rail-top .bstat, .rail-bottom .bstat { position: relative; }
   .rail-dot { position: absolute; left: -26px; top: 4px; width: 9px; height: 9px; opacity: 0; } /* anchor: the line draws the dot */
   .rail-mid { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
   .rail-chips { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-  .rail-chip { display: inline-flex; gap: 5px; align-items: baseline; font-size: 12px; color: #c9cdd8; background: rgb(255 255 255 / .07); border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+  .rail-chip { display: inline-flex; gap: 5px; align-items: baseline; font-size: 12px; color: #e6e8ee; background: rgb(255 255 255 / .16); border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
   .rail-chip b { font-weight: 500; color: #fff; }
   .rail-gap { font-size: 12px; color: var(--dark-mute); }
-  .connector { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 2; overflow: visible; }
+  .connector { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 9; overflow: visible; }
   .connector path { fill: none; stroke-width: 2; stroke: #8a909c; }
   .connector .cn-in { stroke-dasharray: 4 3; }
   .connector .cn-in.is-lag { stroke: #fb923c; }
@@ -1190,10 +1192,11 @@ button.name-pill:hover, button.name-pill[aria-expanded="true"] { background: var
   .connector .cn-dot.is-sp1 { stroke: #86efac; } .connector .cn-dot.is-sp1.is-full { fill: #86efac; }
 }
 @media (max-width: 1180px) {
-  .rail-run { display: contents; } .rail-mid, .rail-dot { display: none; } /* the strip keeps its four figures */
+  .rail-top, .rail-bottom { display: contents; } .rail-mid, .rail-dot { display: none; } /* the strip keeps its four figures */
 }
 
 .hero-2 .rail-mid { display: none; } /* the Bridge page lists burns in their own card */
+.hero-2 .rail-top, .hero-2 .rail-bottom { display: contents; }
 </style><!-- inline-css:end -->
   <!-- modulepreload:start -->
   <link rel="modulepreload" href="/src/data/api.js">

@@ -29,7 +29,9 @@ export default {
     const minted = stat('Burns minted', `${number(b.bridgeMinted)} of ${number(b.bridgeBurns)}`, b.bridgeBurns == null ? '' : [Number(b.bridgeBurns) - Number(b.bridgeMinted) > 0 ? `${number(Number(b.bridgeBurns) - Number(b.bridgeMinted))} not yet minted` : 'all minted', b.burnsAwaitingBundle ? `${number(b.burnsAwaitingBundle)} awaiting bundle` : ''].filter(Boolean).join(' · '));
     const digest = stat('Reflection digest', `<code class="root">${escapeHtml(shortId(b.chain?.reflectionDigest, 5))}</code>`);
     return {
-      html: `<div class="rail-run">${relay}<div class="rail-mid">${chips ? `<div class="rail-chips">${chips}</div>` : ''}<span class="rail-gap" data-rail="gap">24-block gap</span></div>${sp1}</div>${minted}${digest}`,
+      // Wide: the relay tip alone at the top, the burns in transit and the 24-block gap in the space below it, and the
+      // proven side (SP1 attested, burns minted, digest) together at the bottom.
+      html: `<div class="rail-top">${relay}</div><div class="rail-mid">${chips ? `<div class="rail-chips">${chips}</div>` : ''}<div class="rail-gapwrap"><span class="rail-gap" data-rail="gap">24-block gap</span></div></div><div class="rail-bottom">${sp1}${minted}${digest}</div>`,
       asOf: '',
       source: 'BitcoinLightRelay · ConfidentialPool',
     };
