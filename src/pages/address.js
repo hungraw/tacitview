@@ -66,7 +66,7 @@ export function renderAddress(d) {
   return [
     pageHead({ crumbs: [['Ethereum', '#/ethereum'], ['EVM address']], title: 'EVM address', id: address || d.query, icon: chainBadge('eth', 'lg'), chips, links: [...namePills, address && siteLink(`https://etherscan.io/address/${address}`, 'Etherscan')] }),
     `<div class="grid addr-grid addr-grid-eth">${item('Balances') ? balancesCard(item('Balances').rows) : ''}${pool}</div>`,
-    rows ? `<section class="card"><header class="card-head"><h2>Recent deposits</h2><span class="card-head-end"><span class="status">Public side</span></span></header>${filterBar('evm-deposits', { total: shownDeposits.length, scope: 'shown', remember: false, groups: [{ name: 'chain', label: 'Chain', all: 'All chains', options: CHAIN_ORDER.map((c) => [CHAIN_KEY[c], c, shownDeposits.filter((e) => e.chain === c).length]) }] })}${rows}</section>` : '',
+    rows ? `<section class="card"><header class="card-head"><h2>Recent deposits</h2><span class="card-head-end">${stat('Points')?.[1] != null ? `<span class="status" title="All points Tacit's points service (/points) gives this address">Total ${number(Math.round(Number(stat('Points')[1])))} pts</span>` : ''}</span></header>${filterBar('evm-deposits', { total: shownDeposits.length, scope: 'shown', remember: false, groups: [{ name: 'chain', label: 'Chain', all: 'All chains', options: CHAIN_ORDER.map((c) => [CHAIN_KEY[c], c, shownDeposits.filter((e) => e.chain === c).length]) }] })}${rows}</section>` : '',
     (d.notes || []).filter((n) => !/^No EVM pool deposits/.test(n)).length ? `<section class="card">${d.notes.filter((n) => !/^No EVM pool deposits/.test(n)).map((n) => `<p class="empty">${escapeHtml(n)}</p>`).join('')}</section>` : '',
   ].join('');
 }
