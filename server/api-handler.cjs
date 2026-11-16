@@ -89,7 +89,8 @@ function apiHandler(req, res) {
   if (ttl === null || ttl === undefined) return json(res, 404, { error: 'Unknown API route' });
   if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' }, { allow: 'GET' });
   // Lookups count against the visitor's limit, and so does a non-canonical query string (it misses the CDN).
-  if (view?.param || (!view && url.search && url.search !== canonicalQuery(url.searchParams))) {
+  // btc-block-decoded is exempt: instances ask it for every block (all from Vercel's addresses) and it is CDN-cached.
+  if ((view?.param && path !== '/views/btc-block-decoded') || (!view && url.search && url.search !== canonicalQuery(url.searchParams))) {
     const wait = overLimit(req) || (HEAVY.has(path) ? overLimit(req, 'heavy') : 0);
     if (wait) return tooMany(res, wait);
   }

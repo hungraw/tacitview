@@ -11,6 +11,7 @@ const { footprint } = require('./footprint.cjs');
 const detail = require('./detail.cjs');
 const { rpc } = require('./rpc.cjs');
 const { decodeBlock } = require('./btc-block.cjs');
+const { decodedBlock, decodedBlockView } = require('./decoded-block.cjs');
 const { decodePoolLogs, POOL, NULLIFIERS, POOL_BINDING } = require('./pool-logs.cjs');
 const { nullifierIndex, rememberBurn } = require('./bridge-links.cjs');
 const { bridgeOnChain, recentPoolEvents, ethAssets, attestedAt, CONFIRMATIONS, RELAY } = require('./chain-state.cjs');
@@ -212,7 +213,7 @@ async function bridgeTotals() {
   for (let h = snap.through + 1; h < windowFrom && gap.length < BURN_GAP_MAX; h += 1) gap.push(h);
   const gapBlocks = await mapLimit(gap, 6, async (h, i) => {
     const hash = (await cached(`btc:hash:${h}`, async () => String(await esplora(`/block-height/${h}`, 'text', i % ESPLORA_HOSTS.length)).trim(), { ttlMs: 24 * 3600_000 })).data;
-    const d = (await cached(`btcblock:${hash}`, async () => decodeBlock(await esplora(`/block/${hash}/raw`, 'raw', i % ESPLORA_HOSTS.length)), { ttlMs: 24 * 3600_000, staleMs: 24 * 3600_000 })).data;
+    const d = (await decodedBlock(hash, i % ESPLORA_HOSTS.length)).data;
     return { height: h, envelopes: d.envelopes };
   });
   const complete = gap.length === windowFrom - snap.through - 1 && gapBlocks.every((b) => b && !b.error);
@@ -442,7 +443,7 @@ async function btcBlocks() {
   // Confirmed blocks never change: decode each once and keep it for a day (reorgs deeper than the window are not handled).
   // Answer within the time budget with what is decoded; slower blocks keep loading into the cache for the next build.
   const done = new Array(list.length).fill(null);
-  const work = mapLimit(list, 6, (b, i) => cached(`btcblock:${b.id}`, async () => decodeBlock(await esplora(`/block/${b.id}/raw`, 'raw', i % ESPLORA_HOSTS.length)), { ttlMs: 24 * 3600_000, staleMs: 24 * 3600_000 })
+  const work = mapLimit(list, 6, (b, i) => decodedBlock(b.id, i % ESPLORA_HOSTS.length)
     .then((r) => { done[i] = r; return r; }, (error) => { done[i] = { error }; return done[i]; }));
   later(work);
   await Promise.race([work, new Promise((resolve) => setTimeout(resolve, BLOCK_BUDGET_MS))]);
@@ -545,6 +546,7 @@ const VIEWS = {
   '/views/evm-activity': { build: require('./measured-privacy.cjs').evmActivity, ttl: 30 },
   '/views/traced': { build: require('./measured-privacy.cjs').tracedList, ttl: 120 },
   '/views/names': { build: names, ttl: 3600, param: 'q' },
+  '/views/btc-block-decoded': { build: decodedBlockView, ttl: 3600, param: 'id' }, // one block's envelopes, CDN-cached for a year (decoded-block.cjs)
   // Parameterised: ?q=<query>. Classified and validated before any upstream call.
   '/views/footprint': { build: footprint, ttl: 30, param: 'q' },
   // Detail pages: ?id=<txid | 0x hash | height>

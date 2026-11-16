@@ -4,6 +4,7 @@
 const { getUpstream, cached } = require('./upstream.cjs');
 const { decodeTx } = require('./envelope.cjs');
 const { decodeBlock } = require('./btc-block.cjs');
+const { decodedBlock } = require('./decoded-block.cjs');
 const { esplora, mempoolTip } = require('./bitcoin.cjs');
 const { rpc } = require('./rpc.cjs');
 const { CONTRACTS } = require('./footprint.cjs');
@@ -231,7 +232,7 @@ async function btcBlock(id) {
   }, { ttlMs: tip && tip - height + 1 >= BTC_REORG_DEPTH ? DAY : 60_000, staleMs: DAY }).then((x) => x.data);
   const [info, decoded, bridge, assets] = await Promise.all([
     cached(`btc:block:${hash}`, () => esplora(`/block/${hash}`), IMMUTABLE).then((x) => x.data),
-    cached(`btcblock:${hash}`, async () => decodeBlock(await esplora(`/block/${hash}/raw`, 'raw')), IMMUTABLE).then((x) => x.data),
+    decodedBlock(hash).then((x) => x.data),
     bridgeP, assetsP,
   ]);
   return {
@@ -316,7 +317,7 @@ async function blockList(id) {
   const list = pages.flat().filter((b) => heights.includes(b.height)).sort((a, b) => b.height - a.height);
   const done = new Array(list.length).fill(null);
   const assetsP = assetsById().catch(() => new Map());
-  const work = mapLimit(list, 6, (b, i) => cached(`btcblock:${b.id}`, async () => decodeBlock(await esplora(`/block/${b.id}/raw`, 'raw', i % 4)), IMMUTABLE)
+  const work = mapLimit(list, 6, (b, i) => decodedBlock(b.id, i % 4)
     .then((r) => { done[i] = r; }, (error) => { done[i] = { error }; }));
   // Answer within 3s with what is decoded (partial); the rest keeps decoding into the cache, and the page asks again.
   later(work);
