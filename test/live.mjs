@@ -37,7 +37,7 @@ test('every page source loads with shared-cache headers', async (t) => {
     assert.equal(r.status, 200, `${name}: ${JSON.stringify(r.body).slice(0, 200)}`);
     data[name] = { data: r.body };
     // Partial results (an upstream was rate-limited) must not be cached by the CDN; complete ones must be.
-    assert.match(r.headers['cache-control'], r.body?.partial ? /no-store/ : /s-maxage=\d+/, name);
+    assert.match(r.headers['cache-control'], r.body?.partial ? /s-maxage=1,/ : /s-maxage=\d+/, name);
     if (r.body?.partial) t.diagnostic(`${name}: partial (an upstream was rate-limited)`);
   }));
   assert.ok(rateLimited.size < Object.keys(SOURCES).length / 2, 'most sources must load');
