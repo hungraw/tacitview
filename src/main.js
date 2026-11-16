@@ -1,6 +1,6 @@
 // Page controller: live pages (home and section pages) poll and render their sections; list and detail pages
 // load once per visit. Search, copy buttons and the theme toggle live here too.
-import { loadSource, detail, peekSource, peekDetail } from './data/api.js';
+import { loadSource, detail, peekSource, peekDetail, meta } from './data/api.js';
 import { initFilters } from './filters.js';
 import { watchList } from './live-lists.js';
 import { escapeHtml, setTimeMode, getTimeMode, timeIn, shortId, countdown } from './format.js';
@@ -69,7 +69,9 @@ async function loadAll({ force = false } = {}) {
         if (body && !body.dataset.rendered) renderSection(section, { ...Object.fromEntries(extrasIn.map(([n, e]) => [n, e ? { data: e.data, savedAt: e.savedAt } : {}])), ...first });
       }
       const data = Object.fromEntries(await Promise.all(section.sources.map((name) => loads.get(name))));
-      if (section.sources.some((name) => data[name]?.data?.partial)) partial = true;
+      // Still filling on the server, or an old CDN copy (the CDN answers at once from its last copy after a quiet
+      // spell and fetches a new one): look again in a few seconds.
+      if (section.sources.some((name) => data[name]?.data?.partial || Date.now() - (meta.get(data[name]?.data || {})?.dataAt || Date.now()) > 600_000)) partial = true;
       // The page may have changed while loading: render only sections still on screen.
       if (!document.getElementById(`${section.id}-body`)) return;
       if (renderSection(section, data).changed) syncOn();

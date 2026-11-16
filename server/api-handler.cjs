@@ -9,7 +9,10 @@ const { getUpstream } = require('./upstream.cjs');
 const { iconHandler } = require('./asset-icon.cjs');
 const { later } = require('./background.cjs');
 
-const STALE_WHILE_REVALIDATE = 60;
+// The CDN answers from its last copy for up to a day while it fetches a new one in the background, so the first
+// visitor after a quiet spell gets the page at once instead of waiting on a cold instance. The page sees the copy's
+// age (Age header) and asks again a few seconds later (main.js scheduleRefill).
+const STALE_WHILE_REVALIDATE = 86_400;
 // Query params the explorer uses. Others are dropped and the rest sorted, so random query strings
 // can't bypass the caches and multiply upstream load.
 const QUERY_PARAMS = new Set(['network', 'from', 'limit', 'block', 'id']);
@@ -101,7 +104,7 @@ function apiHandler(req, res) {
   work
     // x-tacit-saved-at: when this answer was built (older than now when served from cache), or when its oldest
     // fallback input was saved, so the page shows its real age.
-    .then(({ data, stale, refreshing, savedAt }) => json(res, 200, data, { ...(data?.partial ? { 'cache-control': 'no-store' } : cacheHeaders(data?.gaps ? 15 : Number(data?.cacheTtl) > 0 ? data.cacheTtl : ttl, stale, refreshing)), ...(savedAt ? { 'x-tacit-saved-at': String(Math.min(savedAt, Number(data?.staleSince) || savedAt)) } : {}) })) // settled data declares a longer life
+    .then(({ data, stale, refreshing, savedAt }) => json(res, 200, data, { ...(data?.partial ? { 'cache-control': `public, max-age=0, s-maxage=1, stale-while-revalidate=${STALE_WHILE_REVALIDATE}` } : cacheHeaders(data?.gaps ? 15 : Number(data?.cacheTtl) > 0 ? data.cacheTtl : ttl, stale, refreshing)), ...(savedAt ? { 'x-tacit-saved-at': String(Math.min(savedAt, Number(data?.staleSince) || savedAt)) } : {}) })) // settled data declares a longer life
     // 504 is a build past its deadline: it carries on into the cache, and the page asks again.
     .catch((error) => json(res, [404, 429, 503, 504].includes(error.status) ? error.status : 502, { error: errorTitle(error, view), detail: error.message }, { 'cache-control': 'no-store' }));
 }
