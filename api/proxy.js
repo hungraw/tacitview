@@ -18,7 +18,9 @@ export function originalUrl(url) {
 }
 
 export default function handler(req, res) {
-  if (!warmed) { warmed = true; later(warm()); }
   req.url = originalUrl(req.url);
+  // Not for a single decoded block: instances ask that route for each block, and warming there would start the
+  // whole home page again on every instance it spins up.
+  if (!warmed && !req.url.startsWith('/api/views/btc-block-decoded')) { warmed = true; later(warm()); }
   apiHandler(req, res);
 }
