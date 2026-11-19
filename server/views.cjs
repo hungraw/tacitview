@@ -401,7 +401,7 @@ async function bridgeBurns() {
   burns.sort((a, b) => a.height - b.height || a.txid.localeCompare(b.txid)); // oldest first: furthest along
   for (const b of burns) { if (b.step === 5) pendingBurns.delete(b.txid); else pendingBurns.set(b.txid, { txid: b.txid, height: b.height, time: b.time, ticker: b.ticker }); }
   // A fresh instance has not seen older burns: say how many Tacit reports as not yet minted beyond those listed.
-  const own = await bridgeTotals().catch(() => null);
+  const own = await quickTotals(); // short budget, as on the bridge card; without it the answer is partial and refills
   const listed = new Set(burns.map((b) => b.txid));
   const waitingListed = burns.filter((b) => b.step < 5).length;
   // Typical burn-to-mint wait: the median over the minted burns in view (mint time estimated from its block).
@@ -413,7 +413,7 @@ async function bridgeBurns() {
     tip, relayTip, attested, confirmations: need, ethBlock: head, windowFrom: blocks.blocks.at(-1)?.height ?? null, burns,
     typicalWait, typicalOf: waits.length,
     olderUnminted: own ? own.unminted.filter((b) => !listed.has(b.txid)).length : 0,
-    partial: blocks.partial, // some blocks still decoding: kept briefly, filled on the next build
+    partial: blocks.partial || !own || undefined, // blocks still decoding, or the burn total not ready: kept briefly, filled on the next build
   };
 }
 
