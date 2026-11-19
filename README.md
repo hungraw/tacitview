@@ -46,7 +46,7 @@ The ConfidentialPool and EVM pool histories, the Tacit chain and every bridge bu
 
 ## Visitor privacy
 
-- The page only talks to its own origin. There are no analytics, cookies or third-party scripts, and the content security policy blocks every other address (`default-src 'self'`).
+- The page only talks to its own origin. There are no cookies or third-party scripts, and the content security policy blocks every other address (`default-src 'self'`). Visits are counted with Vercel Web Analytics, served from this same origin: it sets no cookies, keeps no personal data and does not follow anyone across sites.
 - Nothing is looked up until you ask for it. Hovering a link sends no request, and recent searches are forgotten when the tab closes.
 - The server keeps no logs of its own, forwards nothing about you upstream, and rate-limits by a salted hash of your IP that is gone after a minute.
 - Searches still pass through the server, so the server and the upstream sources can see what is looked up. Settings has a button to clear everything the site stored on your device.

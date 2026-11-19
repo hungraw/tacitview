@@ -365,6 +365,15 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('click', (event) => { if (event.target.closest('.keys-hint')) $('keys')?.showModal(); });
 
+// Visit counts (Vercel Web Analytics): a same-origin script, no cookies, no personal data. Production only, so local
+// runs and preview deployments are not counted.
+if (location.hostname === 'tacitview.vercel.app') {
+  const va = document.createElement('script');
+  va.defer = true;
+  va.src = '/_vercel/insights/script.js';
+  document.head.append(va);
+}
+
 // Tooltips (terms and "i" tips) are nudged sideways so they never run off the screen edge. Placed once when the
 // pointer enters (or focus arrives), from the host's position and the tip's untransformed width, against the visible
 // width (clientWidth leaves out the scrollbar), so the tip never chases the pointer or hides under the scrollbar.

@@ -112,7 +112,7 @@ function buildIndex(tails, snap = evmSnapshot.load()) {
   };
 }
 
-// The index answers at once: only a cold instance waits for the live scans (up to 6 s); after that a stale index is
+// The index answers at once: only a cold instance waits for the live scans (poolTotals, up to 1.5 s); after that a stale index is
 // served while a fresh one is built in the background from whatever the scans have.
 let refreshing = null;
 function refresh(wait) {
@@ -235,7 +235,7 @@ async function withdrawalCheck(q) {
 async function poolTotals() {
   let idx = await index();
   // A cold instance first answers from the snapshot alone; wait a little for the live blocks so the card is complete.
-  if (idx.cold) { await Promise.race([refresh(undefined).catch(() => null), new Promise((r) => setTimeout(r, 6_000).unref?.())]); idx = built?.index || idx; }
+  if (idx.cold) { await Promise.race([refresh(undefined).catch(() => null), new Promise((r) => setTimeout(r, 1_500).unref?.())]); idx = built?.index || idx; }
   return Object.entries(idx.totals).map(([chain, t]) => {
     const c = idx.coverage.find((x) => String(x.chain) === chain);
     return { chain: Number(chain), name: CHAINS[chain], deposits: t.deposits, withdrawals: t.withdrawals, depositWei: t.depositWei.toString(), withdrawalWei: t.withdrawalWei.toString(), lastBlock: t.lastBlock || null, lastTime: t.lastTime ?? null, through: c?.through ?? null, live: Boolean(c?.live) };

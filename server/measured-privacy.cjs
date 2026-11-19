@@ -12,7 +12,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { keccak256 } = require('./keccak.cjs');
-const { fetchJson, getUpstream, spend } = require('./upstream.cjs');
+const { fetchJson, getUpstream, spend, mapLimit } = require('./upstream.cjs');
 const { rpc, rpcRaw, rpcArchive, RPCS } = require('./rpc.cjs');
 const { decodePoolLogs, POOL: POOL_ADDRESS } = require('./pool-logs.cjs');
 const { later } = require('./background.cjs');
@@ -85,6 +85,7 @@ let pool = null, lastRead = 0, reading = null;
 // a "tail": re-read on every call and never folded, so the totals still reach the head and a reorg there is simply
 // read again.
 const CONFIRM = 12;
+const PARALLEL = 6; // windows read at once while catching up
 const SPAN = 5_000; // blocks per eth_getLogs (publicnode serves 10,000-block ranges, ~10,000 blocks deep)
 const RECENT = 600; // folded blocks (~2 h) whose own counts are kept, so totals can be taken at a recent block
 const hexBlock = (n) => `0x${n.toString(16)}`;
@@ -119,16 +120,25 @@ async function readNewer() {
     pool.nextBlock ||= pool.headBlock + 1;
     pool.recent ||= [];
     pool.recentFrom ??= pool.nextBlock - 1; // counts at any block from here up can be rebuilt from `recent`
+    // Up to PARALLEL windows are read at once and folded in block order, so days of blocks since the snapshot take
+    // about one window's time instead of one per window. A window that failed stops the fold there (each window is
+    // folded whole or not at all) and is read again on the next call.
     const deadline = Date.now() + 4_000;
     while (pool.nextBlock <= head && Date.now() < deadline) {
-      const to = Math.min(head, pool.nextBlock + SPAN - 1);
-      const w = await readWindow(pool.nextBlock, to);
-      fold(pool, w.entries);
-      addCounts(pool.counts ||= emptyCounts(), w.counts);
-      pool.chain = grow(pool.chain || emptyChain(), w.bodies);
-      (pool.mints ||= []).push(...w.mints);
-      for (const [block, c] of w.byBlock) pool.recent.push({ block, c });
-      pool.nextBlock = to + 1;
+      const starts = [];
+      for (let s = pool.nextBlock; s <= head && starts.length < PARALLEL; s += SPAN) starts.push(s);
+      const got = await Promise.all(starts.map((s) => readWindow(s, Math.min(head, s + SPAN - 1)).catch(() => null)));
+      let folded = 0;
+      for (let i = 0; i < starts.length && got[i]; i++, folded++) {
+        const w = got[i];
+        fold(pool, w.entries);
+        addCounts(pool.counts ||= emptyCounts(), w.counts);
+        pool.chain = grow(pool.chain || emptyChain(), w.bodies);
+        (pool.mints ||= []).push(...w.mints);
+        for (const [block, c] of w.byBlock) pool.recent.push({ block, c });
+        pool.nextBlock = Math.min(head, starts[i] + SPAN - 1) + 1;
+      }
+      if (!folded) break;
     }
     while (pool.recent.length && pool.recent[0].block <= pool.nextBlock - 1 - RECENT) pool.recentFrom = pool.recent.shift().block;
     pool.recentFrom = Math.max(pool.recentFrom, pool.nextBlock - 1 - RECENT);
@@ -334,7 +344,10 @@ async function evmChain(chain) {
   const tailFrom = snapThrough == null ? from : Math.min(from, snapThrough + 1);
   const events = [];
   if (chain === 1 && tailFrom < liveFrom) events.push(...await ethGapEvents(tailFrom, liveFrom - 1));
-  for (let w = chain === 1 ? liveFrom : Math.floor(tailFrom / span) * span; w <= head; w += span) events.push(...await logWindow(chain, w, head));
+  // Up to four windows in flight, folded back in block order.
+  const starts = [];
+  for (let w = chain === 1 ? liveFrom : Math.floor(tailFrom / span) * span; w <= head; w += span) starts.push(w);
+  for (const part of await mapLimit(starts, 4, (w) => logWindow(chain, w, head))) { if (part.error) throw part.error; events.push(...part); }
   for (const k of windows.keys()) if (k.startsWith(`${chain}:`) && Number(k.split(':')[1]) + span < tailFrom) windows.delete(k);
   const inRange = events.filter((e) => e.block >= from);
   const tail = events.filter((e) => e.block >= tailFrom);
