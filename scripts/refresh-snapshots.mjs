@@ -47,7 +47,8 @@ function read(bytesOf) {
   return {
     privacy: { next: p.nextBlock, spends: p.spends, height: p.chain.height, blocks: p.chain.blocks, mints: p.mints.length, pairs: p.pairs.length, counts: p.counts, madeAt: p.madeAt },
     evm: { pool: e.pool, chains: Object.fromEntries(Object.entries(e.chains).map(([id, c]) => [id, { through: c.through, deposits: c.deposits[0].length, withdrawals: c.withdrawals[0].length }])) },
-    burn: { through: b.through, launch: b.launch, binding: b.binding, txids: new Set(b.burns.map((x) => x.txid)), mine: b.burns.filter((x) => x.binding === b.binding).length },
+    burn: { through: b.through, launch: b.launch, binding: b.binding, txids: new Set(b.burns.map((x) => x.txid)), mine: b.burns.filter((x) => x.binding === b.binding).length,
+      mineTo: (h) => b.burns.filter((x) => x.binding === b.binding && x.height <= h).length },
   };
 }
 
@@ -95,7 +96,11 @@ const [tip, status] = await Promise.all([
 if (tip && b1.through > tip - 6) problems.push(`burn snapshot reaches block ${b1.through}, within 6 of the tip ${tip}`);
 // Tacit counts up to its own head, a few blocks past ours: close, not equal.
 if (status) {
-  if (Math.abs(Number(status.bridgeBurns) - b1.mine) > 25) problems.push(`burns for this pool ${b1.mine}, Tacit says ${status.bridgeBurns}`);
+  // Tacit counts burns up to its SP1-attested height, which can lag ours by days: compare at that height.
+  // If it is past our snapshot, ours is only a lower bound there.
+  const at = Number(status.attestedHeight), theirs = Number(status.bridgeBurns);
+  const ours = at <= b1.through ? b1.mineTo(at) : b1.mine;
+  if (at <= b1.through ? Math.abs(theirs - ours) > 25 : ours > theirs + 25) problems.push(`burns for this pool ${ours} through block ${Math.min(at, b1.through)}, Tacit says ${theirs} through ${at}`);
   if (Math.abs(Number(status.bridgeMinted) - p1.mints) > 25) problems.push(`bridge mints ${p1.mints}, Tacit says ${status.bridgeMinted}`);
 } else console.log('  Tacit /reflection/status did not answer: skipped the comparison with Tacit (chain checks still apply)');
 if (problems.length) stop(`checks failed:\n  ${problems.join('\n  ')}`);
